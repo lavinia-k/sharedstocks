@@ -9,6 +9,10 @@ There are two main folders:
 
 To run locally, cd (change directory) into each folder and run:
 
+### `npm install`
+
+and
+
 ### `npm start`
 
 This will run both apps in the development mode.<br>
