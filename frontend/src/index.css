@@ -1,0 +1,90 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Overpass, sans-serif;
+  /* -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", */
+  /* "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", */
+  /* sans-serif; */
+  /* Overpass,sans-serif */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin-top: 100px;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.wallet .row {
+  width: 80vw;
+  height: 50px;
+  overflow: auto;
+  display: block;
+}
+
+.container.wallet .row .wallet-options {
+  /* width: 50%; */
+  float: right;
+}
+
+.wallet .row button {
+  margin-left: 10px;
+}
+
+.align-left {
+  float: left;
+}
+
+.align-right {
+  float: right;
+}
+
+.container .totalShareValue {
+  margin-bottom: 20px;
+}
+
+.sharesCard:hover .card.bg_dark {
+  background-color: blue !important;
+}
+
+.sharesCard > a {
+  text-decoration: none;
+}
+
+.sharesCard .card-text p {
+  margin: 0;
+}
+
+.sharesCard .sharesValue {
+  /* display: block; */
+  min-height: 30px;
+  padding-top: 7px;
+  font-size: large;
+  font-weight: bold;
+  float: right;
+}
+
+.buySharesCard {
+  padding: 15px;
+  width: 50%;
+}
+
+.buySharesCard .card {
+  box-shadow: 0 1px 15px rgba(0, 0, 0, 0.4);
+}
+
+.buySharesCard > a {
+  text-decoration: none;
+}
+
+.buySharesCard h4 {
+  float: right;
+}
+
+.buySharesCard > a:hover h4 {
+  color: #2196f3;
+  float: right;
+}
+
+
