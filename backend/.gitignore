@@ -12,8 +12,3 @@ yarn-debug.log*
 yarn-error.log*
 /.changelog
 .npm/
-
-# Elastic Beanstalk Files
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
