@@ -11,16 +11,24 @@ const request = require("superagent");
 const app = express();
 const port = process.env.PORT || 8081;
 
+// enhance your app security with Helmet
+app.use(helmet());
+// use bodyParser to parse application/json content-type
+app.use(bodyParser.json());
+// enable all CORS requests
+app.use(cors());
+// log HTTP requests
+app.use(morgan("combined"));
+
 // API Key to get stock price data
 QUANDL_API_KEY = "Ojc1ODFmNGQxZWI0ZjgyY2I4MTZiYjI2MDJkNmEzYmY2";
 
-// Database
-const questions = [];
+// Databases
 const accounts = [
   {
     id: 1,
     users: ["auth0|5c5fc6f9b06f034bf6a557b9"],
-    wallet: 1100.6
+    wallet: 11050.6
   }
 ];
 const shares = [
@@ -31,22 +39,19 @@ const shares = [
         symbol: "MSFT",
         market: "NASDAQ",
         name: "Microsoft",
-        units: 5,
-        totalPurchasePrice: 1000
+        units: 75,
+        totalPurchasePrice: 9000
       },
       {
         symbol: "GOOG",
         market: "NASDAQ",
         name: "Google",
-        units: 75,
+        units: 12,
         totalPurchasePrice: 4562.75
       }
     ]
   }
 ];
-
-// const wallet =
-
 const invitations = [
   {
     id: 1,
@@ -54,37 +59,7 @@ const invitations = [
   }
 ];
 
-// enhance your app security with Helmet
-app.use(helmet());
-
-// use bodyParser to parse application/json content-type
-app.use(bodyParser.json());
-
-// enable all CORS requests
-app.use(cors());
-
-// log HTTP requests
-app.use(morgan("combined"));
-
-// retrieve all questions
-app.get("/", (req, res) => {
-  const qs = questions.map(q => ({
-    id: q.id,
-    title: q.title,
-    description: q.description,
-    answers: q.answers.length
-  }));
-  res.send(qs);
-});
-
-// get a specific question
-app.get("/:id", (req, res) => {
-  const question = questions.filter(q => q.id === parseInt(req.params.id));
-  if (question.length > 1) return res.status(500).send();
-  if (question.length === 0) return res.status(404).send();
-  res.send(question[0]);
-});
-
+// Check JWT Auth0 Token
 const checkJwt = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
@@ -99,7 +74,7 @@ const checkJwt = jwt({
   algorithms: ["RS256"]
 });
 
-// retrieve all accounts for user
+// Get All Accounts for User
 app.get("/users/:user/account", checkJwt, (req, res) => {
   const accounts = accounts.filter(account =>
     account.users.includes(req.params.user)
@@ -107,6 +82,24 @@ app.get("/users/:user/account", checkJwt, (req, res) => {
   res.send(accounts);
 });
 
+// Get Wallet
+app.get("/accounts/:id/wallet", (req, res) => {
+  const account = accounts.find(account => account.id == req.params.id);
+  res.send({ wallet: account.wallet });
+});
+
+// Update Wallet
+app.post("/accounts/:id/wallet", (req, res) => {
+  if (typeof req.body.wallet !== "number") {
+    res.status(400).send();
+  } else {
+    const account = accounts.find(account => account.id == req.params.id);
+    account.wallet = req.body.wallet;
+    res.send({ wallet: account.wallet });
+  }
+});
+
+// Helper Method: Get Shares for Account
 function getSharesForAccount(accountId) {
   const accountShares = shares
     .find(s => s.accountId == accountId)
@@ -121,17 +114,18 @@ function getSharesForAccount(accountId) {
   return accountShares;
 }
 
+// Helper Method: Get List of Securities/Tickers for Account
 function getSecuritiesList(accountId) {
   const securities = getSharesForAccount(accountId).map(s => s.symbol);
   return securities;
 }
 
-// retrieve all shares for account
+// Get All Shares for Account
 app.get("/accounts/:id/shares", (req, res) => {
   res.send(getSharesForAccount(req.params.id));
 });
 
-// Get Quandl API Data
+// Get Latest Share Prices for All Securities In An Account
 app.get("/accounts/:id/shares/latestprices", (req, res) => {
   ticker_array = getSecuritiesList(req.params.id);
   ticker_string = ticker_array.join(",");
@@ -146,6 +140,7 @@ app.get("/accounts/:id/shares/latestprices", (req, res) => {
     .end((error, result) => {
       if (error) {
         console.log(error);
+        return res.status(500).send();
       }
 
       const securitiesWithLatestPrice = Object.assign(
@@ -157,60 +152,57 @@ app.get("/accounts/:id/shares/latestprices", (req, res) => {
     });
 });
 
-// insert a new question
+// Buy Shares
 app.post("/buyshares", (req, res) => {
-  const accountId = 1; // Test values
-  const cost = 500; // Test values
+  const accountId = 1; // Test value
 
   const { symbol, units } = req.body;
-  const existingShare = shares
-    .find(s => s.accountId == accountId)
-    .shares.find(s => s.symbol === symbol);
 
-  if (existingShare != undefined) {
-    existingShare.units += units;
-    existingShare.totalPurchasePrice += cost;
-  } else {
-    const newShare = {
-      symbol: symbol,
-      market: "NASDAQ",
-      name: "Testing",
-      units: units,
-      totalPurchasePrice: cost
-    };
-    shares.find(s => s.accountId == accountId).shares.push(newShare);
-  }
-  res.status(200).send();
-});
+  request
+    .get("https://api.intrinio.com/data_point")
+    .query({
+      api_key: QUANDL_API_KEY,
+      ticker: symbol,
+      item: "last_price"
+    })
+    .then(result => {
+      if (
+        typeof result.body.value !== "number" ||
+        isNaN(result.body.value) ||
+        result.body.value == "na"
+      ) {
+        res.status(500).send();
+      } else {
+        const existingShare = shares
+          .find(s => s.accountId == accountId)
+          .shares.find(s => s.symbol === symbol);
 
-// insert a new question
-app.post("/", checkJwt, (req, res) => {
-  const { title, description } = req.body;
-  const newQuestion = {
-    id: questions.length + 1,
-    title,
-    description,
-    answers: [],
-    author: req.user.name
-  };
-  questions.push(newQuestion);
-  res.status(200).send();
-});
+        const cost = units * result.body.value;
 
-// insert a new answer to a question
-app.post("/answer/:id", checkJwt, (req, res) => {
-  const { answer } = req.body;
+        if (existingShare != undefined) {
+          existingShare.units += units;
+          existingShare.totalPurchasePrice += cost;
+        } else {
+          const newShare = {
+            symbol: symbol,
+            market: "NASDAQ",
+            name: symbol,
+            units: units,
+            totalPurchasePrice: cost
+          };
+          shares.find(s => s.accountId == accountId).shares.push(newShare);
+        }
 
-  const question = questions.filter(q => q.id === parseInt(req.params.id));
-  if (question.length > 1) return res.status(500).send();
-  if (question.length === 0) return res.status(404).send();
-
-  question[0].answers.push({
-    answer,
-    author: req.user.name
-  });
-
-  res.status(200).send();
+        accounts[0].wallet = accounts[0].wallet - cost;
+        res.status(200).send();
+      }
+    })
+    .catch(error => {
+      if (error) {
+        console.log(error);
+        res.status(500).send();
+      }
+    });
 });
 
 //Start server

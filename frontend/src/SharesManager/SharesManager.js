@@ -28,7 +28,7 @@ class SharesManager extends Component {
 
   async componentDidMount() {
     const { data: accountShares } = await axios.get(
-      "/accounts/1/shares"
+      process.env.REACT_APP_BACKEND_API + "/accounts/1/shares"
     );
 
     this.setState({
@@ -36,7 +36,7 @@ class SharesManager extends Component {
     });
 
     const { data: latestPrices } = await axios.get(
-      "/accounts/1/shares/latestprices"
+      process.env.REACT_APP_BACKEND_API + "/accounts/1/shares/latestprices"
     );
 
     this.setState({

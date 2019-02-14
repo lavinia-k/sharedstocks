@@ -37,7 +37,7 @@ class SharesCard extends React.Component {
                   <h6
                     className="sharesValue"
                     style={
-                      latestPrice * units > totalPurchasePrice
+                      latestPrice * units >= totalPurchasePrice
                         ? { color: "#4caf50" }
                         : { color: "#b35858" }
                     }

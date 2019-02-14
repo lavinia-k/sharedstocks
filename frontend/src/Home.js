@@ -1,5 +1,4 @@
 import React from "react";
-import Questions from "./Questions/Questions";
 import Wallet from "./Wallet/Wallet";
 import SharesManager from "./SharesManager/SharesManager";
 

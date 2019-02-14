@@ -14,7 +14,6 @@ function SecuredRoute(props) {
           auth0Client.signIn();
           return <div />;
         }
-        console.log("returning component: " + Component);
         return <Component />;
       }}
     />

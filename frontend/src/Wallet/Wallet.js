@@ -1,49 +1,81 @@
 import React from "react";
+import axios from "axios";
 import WalletOptions from "./WalletOptions";
+import formatMoney from "../Utils";
+
+const walletIncrementAndDecrementValue = 100;
 
 class Wallet extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { wallet: 0.0, originalAmount: null };
+    this.state = { wallet: null };
     this.increaseBalance = this.increaseBalance.bind(this);
     this.decreaseBalance = this.decreaseBalance.bind(this);
   }
 
-  increaseBalance() {
-    const { wallet, originalAmount } = this.state;
-    let newOriginalAmount;
-    if (originalAmount === null) {
-      newOriginalAmount = wallet;
-    } else {
-      newOriginalAmount = originalAmount; // unchanged
-    }
-    const newAmount = wallet + 1;
+  async componentDidMount() {
+    const { data } = await axios.get(
+      process.env.REACT_APP_BACKEND_API + "/accounts/1/wallet"
+    );
+    const wallet = data.wallet;
     this.setState({
-      wallet: newAmount,
-      originalAmount: newOriginalAmount
+      wallet: parseFloat(wallet)
     });
   }
 
-  decreaseBalance() {
-    const { wallet } = this.state;
-    if (wallet > 0) {
-      const newAmount = wallet - 1;
+  async increaseBalance() {
+    const { wallet: currentAmount } = this.state;
+    const newAmount = currentAmount + walletIncrementAndDecrementValue;
+
+    const { data } = await axios.post(
+      process.env.REACT_APP_BACKEND_API + "/accounts/1/wallet",
+      {
+        wallet: parseFloat(newAmount)
+      }
+    );
+    const wallet = data.wallet;
+    this.setState({
+      wallet: parseFloat(wallet)
+    });
+  }
+
+  async decreaseBalance() {
+    const { wallet: currentAmount } = this.state;
+    const newAmount = currentAmount - walletIncrementAndDecrementValue;
+    if (newAmount > 0) {
+      const { data } = await axios.post(
+        process.env.REACT_APP_BACKEND_API + "/accounts/1/wallet",
+        {
+          wallet: parseFloat(newAmount)
+        }
+      );
+      const wallet = data.wallet;
       this.setState({
-        wallet: newAmount
+        wallet: parseFloat(wallet)
       });
     }
   }
 
   render() {
     const { wallet } = this.state;
+    const walletLoaded = wallet !== null;
+
     return (
       <div className="container wallet">
         <div className="row">
-          <h1 className="balance align-left">Cash Balance: {wallet}</h1>
-          <WalletOptions
-            increaseBalance={this.increaseBalance}
-            decreaseBalance={this.decreaseBalance}
-          />
+          {walletLoaded ? (
+            <>
+              <h1 className="balance align-left">
+                Cash Balance: $ {formatMoney(wallet)}
+              </h1>
+              <WalletOptions
+                increaseBalance={this.increaseBalance}
+                decreaseBalance={this.decreaseBalance}
+              />
+            </>
+          ) : (
+            <h1 className="balance align-left">Cash Balance: ... </h1>
+          )}
         </div>
       </div>
     );

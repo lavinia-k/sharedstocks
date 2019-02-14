@@ -6,7 +6,7 @@ class Auth {
       domain: "sharedstocks.au.auth0.com",
       audience: "https://sharedstocks.au.auth0.com/userinfo",
       clientID: "7ccavZNopw5akETgf7BCQ8xGu2gW8bWR",
-      redirectUri: "http://localhost:3000/callback",
+      redirectUri: process.env.REACT_APP_FRONTEND + "/callback",
       responseType: "id_token",
       scope: "openid profile"
     });
@@ -49,22 +49,19 @@ class Auth {
 
   setSession(authResult) {
     this.idToken = authResult.idToken;
-    console.log("idToken", this.idToken);
     this.profile = authResult.idTokenPayload;
-    console.log("profile", this.profile);
     // set the time that the id token will expire at
     this.expiresAt = authResult.idTokenPayload.exp * 1000;
   }
 
   signOut() {
     this.auth0.logout({
-      returnTo: "http://localhost:3000",
+      returnTo: process.env.REACT_APP_FRONTEND,
       clientID: "7ccavZNopw5akETgf7BCQ8xGu2gW8bWR"
     });
   }
 
   silentAuth() {
-    console.log("Silently authenticating...");
     return new Promise((resolve, reject) => {
       this.auth0.checkSession({}, (err, authResult) => {
         if (err) return reject(err);

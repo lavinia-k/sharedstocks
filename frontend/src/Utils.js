@@ -30,9 +30,3 @@ export default function formatMoney(
     console.log(e);
   }
 }
-
-// export default function formatMoney(x) {
-//   return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-// }
-
-// export default formatMoney();

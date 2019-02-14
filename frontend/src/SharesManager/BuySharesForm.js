@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { withRouter } from "react-router-dom";
-import auth0Client from "../Auth";
 import axios from "axios";
-import { confirmAlert } from "react-confirm-alert"; // Import
 import "react-confirm-alert/src/react-confirm-alert.css";
 
 class BuySharesForm extends Component {
@@ -24,14 +22,13 @@ class BuySharesForm extends Component {
 
   updateSymbol(value) {
     this.setState({
-      symbol: value,
-      disabled: true
+      symbol: value
     });
   }
 
   async getCurrentCost() {
     const { data: latestPrices } = await axios.get(
-      "/accounts/1/shares/latestprices"
+      process.env.REACT_APP_BACKEND_API + "/accounts/1/shares/latestprices"
     );
 
     this.setState({
@@ -44,33 +41,17 @@ class BuySharesForm extends Component {
       disabled: true
     });
 
-    confirmAlert({
-      title: "Confirm to submit",
-      message: "Are you sure to do this.",
-      buttons: [
-        {
-          label: "Yes",
-          onClick: () => alert("Click Yes")
-        },
-        {
-          label: "No",
-          onClick: () => alert("Click No")
-        }
-      ]
-    });
-
-    await axios.post(
-      "/buyshares",
-      {
+    await axios
+      .post(process.env.REACT_APP_BACKEND_API + "/buyshares", {
         symbol: this.state.symbol,
         units: this.state.units
-      },
-      {
-        headers: { Authorization: `Bearer ${auth0Client.getIdToken()}` }
-      }
-    );
-
-    console.log("here");
+      })
+      .then(
+        response => {},
+        error => {
+          console.log(error);
+        }
+      );
 
     this.props.history.push("/");
   }
