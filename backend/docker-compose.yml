@@ -1,0 +1,8 @@
+---
+inventory:
+  build: .
+  command: npm start
+  ports:
+  - "8081:8081"
+  environment:
+    - NODE_ENV=production
