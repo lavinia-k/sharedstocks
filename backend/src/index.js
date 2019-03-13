@@ -7,6 +7,12 @@ const morgan = require("morgan");
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const request = require("superagent");
+const fs = require('fs');
+
+var https = require('https');
+var privateKey  = fs.readFileSync('sslcert/server.key', 'utf8');
+var certificate = fs.readFileSync('sslcert/server.crt', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
 
 const app = express();
 const port = process.env.PORT || 8081;
@@ -73,6 +79,12 @@ const checkJwt = jwt({
   issuer: `https://sharedstocks.au.auth0.com/`,
   algorithms: ["RS256"]
 });
+
+// Get Heartbeat
+app.get("/", (req,res) => {
+  res.send("Heartbeat successful");
+});
+
 
 // Get All Accounts for User
 app.get("/users/:user/account", checkJwt, (req, res) => {
@@ -206,6 +218,21 @@ app.post("/buyshares", (req, res) => {
 });
 
 //Start server
-app.listen(port, (req, res) => {
-  console.log(`server listening on port: ${port}`);
+// app.listen(port, (req, res) => {
+//   console.log(`server listening on port: ${port}`);
+// });
+
+var server = https.createServer(credentials, app);
+
+server.listen(port, () => {
+  console.log("server starting on port : " + port)
 });
+
+// var http = require('http');
+// http.createServer(app).listen(8081);
+
+// var httpServer = http.createServer(app);
+// var httpsServer = https.createServer(credentials, app);
+
+// httpServer.listen(8080);
+// httpsServer.listen(8443);
